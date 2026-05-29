@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Damien's Arcade</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --neon-pink: #ff2a4d;
+    --neon-blue: #2a9fff;
+    --neon-cyan: #58f5ff;
+    --neon-purple: #a23cff;
+  }
+  html, body { height: 100%; }
+  body {
+    min-height: 100%;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    color: #fff;
+    background: #06070d;
+    overflow-x: hidden;
+    display: flex; flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ===== Animated neon background ===== */
+  .bg {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(162,60,255,0.25), transparent 45%),
+      radial-gradient(circle at 80% 20%, rgba(42,159,255,0.22), transparent 45%),
+      radial-gradient(circle at 50% 95%, rgba(255,42,77,0.22), transparent 50%),
+      #06070d;
+  }
+  .bg .grid {
+    position: absolute; left: 50%; bottom: -10%;
+    width: 240%; height: 120%; transform: translateX(-50%) perspective(420px) rotateX(62deg);
+    background-image:
+      linear-gradient(rgba(120,200,255,0.25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,200,255,0.25) 1px, transparent 1px);
+    background-size: 46px 46px;
+    animation: grid-move 6s linear infinite;
+    mask-image: linear-gradient(to top, #000 10%, transparent 75%);
+    -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 75%);
+  }
+  @keyframes grid-move { from { background-position: 0 0; } to { background-position: 0 46px; } }
+
+  .wrap { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; }
+
+  /* ===== Shared headings ===== */
+  .arcade-title {
+    text-align: center; text-transform: uppercase; line-height: 1.02;
+    font-weight: 900; letter-spacing: 4px;
+  }
+  .arcade-title .l1 { display:block; font-size: clamp(30px, 6vw, 58px); color:#fff;
+    text-shadow: 0 0 10px var(--neon-pink), 0 0 26px var(--neon-pink); }
+  .arcade-title .l2 { display:block; font-size: clamp(40px, 9vw, 96px);
+    color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-blue), 0 0 36px var(--neon-blue), 0 0 4px #fff; }
+
+  .blink { animation: blink 1.4s steps(2,start) infinite; }
+  @keyframes blink { 50% { opacity: 0.25; } }
+
+  /* ===== LOGIN screen ===== */
+  #login {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
+    padding: 24px; text-align: center;
+    background: radial-gradient(circle at 50% 40%, rgba(20,6,40,0.6), rgba(6,7,13,0.96) 75%);
+    backdrop-filter: blur(2px);
+  }
+  .login-card {
+    display: flex; flex-direction: column; gap: 18px; align-items: center;
+    padding: 34px 30px; border-radius: 18px;
+    background: rgba(10,12,22,0.7);
+    border: 1px solid rgba(120,200,255,0.35);
+    box-shadow: 0 0 40px rgba(42,159,255,0.25), inset 0 0 30px rgba(42,159,255,0.06);
+    width: min(420px, 92vw);
+  }
+  .login-card .prompt { font-size: 15px; letter-spacing: 3px; text-transform: uppercase; color: #cfe9ff; opacity: 0.85; }
+  .pw-row { display: flex; gap: 10px; width: 100%; }
+  #pw {
+    flex: 1; font-family: inherit; font-size: 20px; text-align: center; letter-spacing: 4px;
+    padding: 14px 16px; border-radius: 12px; color: #fff;
+    background: rgba(0,0,0,0.45); border: 2px solid var(--neon-blue);
+  }
+  #pw:focus { outline: none; box-shadow: 0 0 18px var(--neon-blue); }
+  .btn {
+    cursor: pointer; font-family: inherit; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+    border-radius: 12px; color: #fff; border: 2px solid var(--neon-pink);
+    background: linear-gradient(135deg, var(--neon-pink), #a3003a);
+    box-shadow: 0 0 18px rgba(255,42,77,0.5); transition: transform .12s, box-shadow .12s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(255,42,77,0.85); }
+  #enter-btn { font-size: 18px; padding: 14px 22px; }
+  .err { color: var(--neon-pink); font-size: 14px; letter-spacing: 1px; min-height: 18px; opacity: 0; transition: opacity .2s; }
+  .err.show { opacity: 1; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+  .footer-note { font-size: 12px; letter-spacing: 1px; opacity: 0.5; }
+
+  /* ===== ARCADE (after unlock) ===== */
+  #arcade { display: none; flex-direction: column; align-items: center; padding: 40px 20px 30px; gap: 30px; }
+  #arcade.show { display: flex; }
+  .subtitle { text-align:center; font-size: clamp(13px,2vw,17px); letter-spacing: 2px; opacity: 0.8; text-transform: uppercase; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 26px;
+    width: min(900px, 94vw); margin-top: 4px; }
+
+  .tile {
+    position: relative; display: flex; flex-direction: column; gap: 14px;
+    text-decoration: none; color: #fff; padding: 26px 24px; border-radius: 20px;
+    background: rgba(12,14,26,0.75); overflow: hidden;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 26px -6px var(--accent), inset 0 0 24px rgba(255,255,255,0.03);
+    transition: transform .16s ease, box-shadow .16s ease;
+    min-height: 220px;
+  }
+  .tile:hover { transform: translateY(-6px) scale(1.015); box-shadow: 0 0 44px -4px var(--accent); }
+  .tile .icon { font-size: 56px; line-height: 1; filter: drop-shadow(0 0 12px var(--accent)); }
+  .tile h2 { font-size: 26px; text-transform: uppercase; letter-spacing: 2px;
+    text-shadow: 0 0 12px var(--accent); }
+  .tile p { font-size: 15px; line-height: 1.5; opacity: 0.85; flex: 1; }
+  .tile .play { align-self: flex-start; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+    padding: 10px 18px; border-radius: 10px; font-size: 14px;
+    background: var(--accent); color: #0a0a12; box-shadow: 0 0 16px -2px var(--accent); }
+  .tile .badge { position: absolute; top: 14px; right: 14px; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; padding: 5px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); opacity: 0.85; }
+
+  .maze { --accent: var(--neon-pink); }
+  .tube { --accent: var(--neon-blue); }
+
+  .lock-btn {
+    cursor: pointer; font-family: inherit; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 9px 18px; border-radius: 10px; color: #cfe9ff; margin-top: 6px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(120,200,255,0.45);
+  }
+  .lock-btn:hover { background: rgba(120,200,255,0.15); }
+  footer { text-align:center; padding: 18px; font-size: 12px; letter-spacing: 1px; opacity: 0.45; position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+  <div class="bg"><div class="grid"></div></div>
+
+  <!-- ===== Password gate ===== -->
+  <div id="login">
+    <h1 class="arcade-title"><span class="l1">Damien's</span><span class="l2">Arcade</span></h1>
+    <div class="login-card">
+      <div class="prompt">▶ Insert password to play</div>
+      <div class="pw-row">
+        <input id="pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="• • • • • • • •" />
+        <button id="enter-btn" class="btn">Enter</button>
+      </div>
+      <div id="err" class="err">Access denied — try again</div>
+    </div>
+    <div class="footer-note blink">Press ENTER to continue</div>
+  </div>
+
+  <!-- ===== Arcade (revealed after unlock) ===== -->
+  <div class="wrap">
+    <div id="arcade">
+      <h1 class="arcade-title"><span class="l1">Damien's</span><span class="l2">Arcade</span></h1>
+      <div class="subtitle">★ Select your game ★</div>
+
+      <div class="tiles">
+        <a class="tile maze" href="https://aapearce.github.io/damiens-maze-runner/">
+          <span class="badge">3D · Babylon.js</span>
+          <div class="icon">👹</div>
+          <h2>Damien's Maze Runner</h2>
+          <p>Drop into a dark first-person 3D maze. Find the wormhole exit across three levels while masked monsters wander the halls. Don't let them touch you twice.</p>
+          <span class="play">Play ▶</span>
+        </a>
+
+        <a class="tile tube" href="https://aapearce.github.io/TUBEMATCH/">
+          <span class="badge">Memory · Puzzle</span>
+          <div class="icon">🚇</div>
+          <h2>Underground Match</h2>
+          <p>Test your memory on the London Underground. Match the station pairs across the network before your nerve runs out. Mind the map!</p>
+          <span class="play">Play ▶</span>
+        </a>
+      </div>
+
+      <button id="lock-btn" class="lock-btn">🔒 Lock arcade</button>
+    </div>
+    <footer>Damien's Arcade · made with ❤</footer>
+  </div>
+
+  <script>
+    // NOTE: This is a lightweight client-side gate for a static site — it keeps casual
+    // visitors out, but it is NOT real security (the password lives in the page source).
+    const PASSWORD = "@dgames@";
+    const KEY = "damiens_arcade_unlocked";
+
+    const login = document.getElementById("login");
+    const arcade = document.getElementById("arcade");
+    const pw = document.getElementById("pw");
+    const err = document.getElementById("err");
+    const card = document.querySelector(".login-card");
+
+    function unlock() {
+      login.style.display = "none";
+      arcade.classList.add("show");
+    }
+    function lock() {
+      sessionStorage.removeItem(KEY);
+      arcade.classList.remove("show");
+      login.style.display = "flex";
+      pw.value = "";
+      pw.focus();
+    }
+    function attempt() {
+      if (pw.value === PASSWORD) {
+        sessionStorage.setItem(KEY, "1");
+        unlock();
+      } else {
+        err.classList.add("show");
+        card.classList.remove("shake");
+        void card.offsetWidth;        // restart the shake animation
+        card.classList.add("shake");
+        pw.select();
+      }
+    }
+
+    document.getElementById("enter-btn").addEventListener("click", attempt);
+    pw.addEventListener("keydown", (e) => { if (e.key === "Enter") attempt(); });
+    pw.addEventListener("input", () => err.classList.remove("show"));
+    document.getElementById("lock-btn").addEventListener("click", lock);
+
+    // stay unlocked for this browser session (until tab/window closes)
+    if (sessionStorage.getItem(KEY) === "1") unlock();
+    else pw.focus();
+  </script>
+</body>
+</html>
