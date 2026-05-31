@@ -10,6 +10,7 @@ A password-gated landing page that links Damien's web games together as tiles.
 | --- | --- |
 | 👹 **[Damien's Maze Runner](https://aapearce.github.io/damiens-maze-runner/)** | First-person 3D maze — escape across three levels while masked monsters roam. |
 | 🚇 **[Damien's Underground Match](https://aapearce.github.io/TUBEMATCH/)** | London Underground memory/matching game. |
+| 🤿 **[Damien's Under the Sea Adventure](https://aapearce.github.io/damiens-under-the-sea/)** | 3D diving collector — descend to the seabed, grab rare species, dodge sharks & octopuses. |
 
 ## How it works
 
